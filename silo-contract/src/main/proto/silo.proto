@@ -1,0 +1,169 @@
+//
+// Protocol buffers definition for Silo server
+//
+syntax = "proto3";
+package pt.tecnico.sauron.silo.grpc;
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+
+// TYPES
+
+enum TargetType {
+	CAR = 0;
+	PERSON = 1;
+};
+
+enum UpdateType {
+	EYE = 0;
+	OBSERVATION = 1;
+};
+
+message Observation {
+	TargetType targetType = 1;
+	string targetId = 2;
+	google.protobuf.Timestamp dateTime = 3;
+	string camName = 4;
+}
+
+message Camera {
+	string camName   = 1;
+	double latitude  = 2;
+	double longitude = 3;	
+}
+
+message UpdateLog {
+	UpdateType type = 1;
+	repeated int32 timestamp = 2;
+	Camera eye = 3;
+	repeated Observation observations = 4;
+}
+
+
+//Gossip Operation
+
+message GossipRequest {
+	repeated int32 replicTimestamp = 1;
+	repeated UpdateLog updateLogs = 2;
+	int32 replicNumber = 3;
+}
+
+message GossipResponse {	
+	repeated int32 timestamp = 1;
+}
+
+// Ping Operation
+
+message PingRequest {
+	string inputText = 1;
+}
+
+message PingResponse {
+	string outputText = 1;	
+}
+
+
+//CLEAR OPERATION
+
+message ClearRequest{}
+
+message ClearResponse{}
+
+message InitRequest {
+	
+}
+
+message InitResponse {
+	
+}
+
+
+
+// CamJoin Operation
+
+message CamJoinRequest {
+	string camName   = 1;
+	double latitude  = 2;
+	double longitude = 3;	
+	repeated int32 prevTimestamp = 4;
+}
+
+message CamJoinResponse {
+	repeated int32 nextTimestamp = 1;
+}
+
+// CamInfo Operation
+
+message CamInfoRequest {
+	string camName = 1;
+	repeated int32 prevTimestamp = 2;
+}
+
+message CamInfoResponse {
+	double latitude  = 1;
+	double longitude = 2;
+	repeated int32 nextTimestamp = 3;
+}
+
+// Report Operation
+
+message ReportRequest{
+	repeated Observation observations = 1;
+	repeated int32 prevTimestamp = 2;
+}
+
+message ReportResponse{
+	repeated int32 nextTimestamp = 1;
+}
+
+// Track Operation
+
+message TrackRequest {
+	TargetType targetType = 1;
+	string targetId = 2;
+	repeated int32 prevTimestamp = 3;
+}
+
+message TrackResponse {
+	Observation observation = 1;
+	repeated int32 nextTimestamp = 2;
+}
+
+// TrackMatch Operation
+
+message TrackMatchRequest {
+	TargetType targetType = 1;
+	string targetId = 2;
+	repeated int32 prevTimestamp = 3;
+}
+
+message TrackMatchResponse {
+	repeated Observation observations = 1;
+	repeated int32 nextTimestamp = 2;
+}
+
+// Trace Operation
+
+message TraceRequest {
+	TargetType targetType = 1;
+	string targetId = 2;
+	repeated int32 prevTimestamp = 3;
+}
+
+message TraceResponse {
+	repeated Observation observations = 1;
+	repeated int32 nextTimestamp = 2;
+}
+
+service Silo {
+	rpc ctrl_ping(PingRequest) returns (PingResponse);
+	rpc ctrl_clear(ClearRequest) returns (ClearResponse);
+	rpc ctrl_init(InitRequest) returns (InitResponse);
+	rpc cam_join(CamJoinRequest) returns (CamJoinResponse);
+	rpc cam_info(CamInfoRequest) returns (CamInfoResponse);
+	rpc report(ReportRequest) returns (ReportResponse);
+	rpc track(TrackRequest) returns (TrackResponse);
+	rpc trackMatch(TrackMatchRequest) returns (TrackMatchResponse);
+	rpc trace(TraceRequest) returns (TraceResponse);
+	rpc receiveGossipMsg(GossipRequest) returns (GossipResponse);
+}
